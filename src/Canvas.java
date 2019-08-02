@@ -17,15 +17,19 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
 
     private int imageSize = 11; // Change this as required
 
-    private Pixel[] pixelList = new Pixel[(int) Math.pow(imageSize, 2)];
+    private Pixel[] pixelList;
     private JColorChooser jcc = new JColorChooser();
-    private JPanel drawingArea = new JPanel();
+    private JPanel drawingArea;
 
     private JMenu file;
     private JMenuItem saveButton = new JMenuItem("Save");
     private JMenuItem saveRawButton = new JMenuItem("Save Raw Data");
     private JMenuItem loadRawButton = new JMenuItem("Load Raw Data"); // TODO: Non-functional
-    private JMenuItem sizeButton = new JMenuItem("Size"); // TODO: Non-functional
+    private JMenuItem sizeButton = new JMenuItem("Size");
+
+
+    private boolean leftMouseDown = false;
+    private boolean rightMouseDown = false;
 
     public Canvas() {
         this.setTitle("Pixel Art Generator");
@@ -40,34 +44,15 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
         this.add(jcc, BorderLayout.PAGE_END);
 
         this.setSize(height/2, height/2 + jcc.getHeight());
-        this.setLocation(width/2-height/4, height/2 - jcc.getHeight());
+        this.setLocation(width/2-height/4, (height/2 - jcc.getHeight())/2);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
 
         this.setBackground(Color.BLACK);
 
-        // Create a 11x11 JLabel grid
+        // Creating the canvas
 
-        for (int i = 0; i < imageSize*imageSize; i++) {
-            pixelList[i] = new Pixel();
-        }
-
-        drawingArea.setBackground(Color.BLACK);
-
-        drawingArea.setPreferredSize(new Dimension(height-50,height-50));
-        drawingArea.setLayout(new GridLayout(imageSize, imageSize, 2, 2));
-
-        for (int i = 0; i < imageSize*imageSize; i++) {
-
-            pixelList[i].addMouseListener(this);
-            pixelList[i].addMouseMotionListener(this);
-
-            drawingArea.add(pixelList[i]);
-        }
-
-        this.add(drawingArea, BorderLayout.CENTER);
-
-        drawingArea.setVisible(true);
+        resetCanvas();
 
 
         //// Menu Bar
@@ -89,6 +74,46 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
         this.addMouseMotionListener(this);
 
         this.setVisible(true);
+    }
+
+    // To call this again for resetting the canvas
+    public void resetCanvas() {
+
+        pixelList = new Pixel[(int) Math.pow(imageSize, 2)];
+
+        try {
+            this.remove(drawingArea);
+        } catch (Exception e) {
+
+        }
+
+        // Create a 11x11 JLabel grid
+
+        for (int i = 0; i < imageSize*imageSize; i++) {
+            pixelList[i] = new Pixel();
+        }
+
+        // Drawing the actual canvas
+
+        drawingArea = new JPanel();
+        drawingArea.setBackground(Color.BLACK);
+
+        drawingArea.setPreferredSize(new Dimension(height-50,height-50));
+        drawingArea.setLayout(new GridLayout(imageSize, imageSize, 2, 2));
+
+        for (int i = 0; i < imageSize*imageSize; i++) {
+
+            pixelList[i].addMouseListener(this);
+            pixelList[i].addMouseMotionListener(this);
+
+            drawingArea.add(pixelList[i]);
+        }
+
+        this.add(drawingArea, BorderLayout.CENTER);
+
+        validate();
+        repaint();
+
     }
 
     private void save() throws IOException {
@@ -140,9 +165,29 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
         }
         if (e.getSource() == sizeButton) {
             System.out.println("Size requested");
-//            imageSize = 5;
-//            removeAll();
-            System.out.println();
+
+            String sizeInput = JOptionPane.showInputDialog("Enter size");
+            int newSize = 3;
+
+            // Only if number is an integer
+            if (isNumeric(sizeInput)) {
+
+                newSize = Integer.parseInt(sizeInput);
+
+                // Only if the size is reasonable
+                if (newSize >= 3 && newSize <= 17) {
+                    imageSize = newSize;
+                    resetCanvas();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please enter a number between 3 and 17",
+                            "Message", JOptionPane.INFORMATION_MESSAGE);
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Please enter a valid number",
+                        "Message", JOptionPane.INFORMATION_MESSAGE);
+            }
+
         }
         if (e.getSource() == saveRawButton) {
             System.out.println("Saving Raw Requested");
@@ -159,27 +204,56 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
     public void mouseClicked(MouseEvent e) {
         for (int i = 0; i < imageSize*imageSize; i++) {
             if (e.getSource() == pixelList[i]) {
-                System.out.println(i + " clicked");
-                pixelList[i].setBackground(jcc.getColor());
+                if (e.getButton() == MouseEvent.BUTTON1)
+                    pixelList[i].setBackground(jcc.getColor());
+                else if (e.getButton() == MouseEvent.BUTTON3) {
+                    pixelList[i].setBackground(Color.WHITE);
+                }
             }
         }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            leftMouseDown = true;
+        }
+        if (e.getButton() == MouseEvent.BUTTON3) {
+            rightMouseDown = true;
+        }
         for (int i = 0; i < imageSize*imageSize; i++) {
             if (e.getSource() == pixelList[i]) {
-                System.out.println(i + " clicked");
-                pixelList[i].setBackground(jcc.getColor());
+                if (e.getButton() == MouseEvent.BUTTON1)
+                    pixelList[i].setBackground(jcc.getColor());
+                else if (e.getButton() == MouseEvent.BUTTON3) {
+                    pixelList[i].setBackground(Color.WHITE);
+                }
             }
         }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) { }
+    public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            leftMouseDown = false;
+        }
+        if (e.getButton() == MouseEvent.BUTTON3) {
+            rightMouseDown = false;
+        }
+    }
 
     @Override
-    public void mouseEntered(MouseEvent e) { }
+    public void mouseEntered(MouseEvent e) {
+        for (int i = 0; i < imageSize*imageSize; i++) {
+            if (e.getSource() == pixelList[i]) {
+                if (leftMouseDown) {
+                    pixelList[i].setBackground(jcc.getColor());
+                } else if (rightMouseDown) {
+                    pixelList[i].setBackground(Color.WHITE);
+                }
+            }
+        }
+    }
 
     @Override
     public void mouseExited(MouseEvent e) { }
@@ -207,5 +281,14 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
 //        }
 //
 //     }
+
+    public static boolean isNumeric(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch(NumberFormatException e){
+            return false;
+        }
+    }
 
 }
