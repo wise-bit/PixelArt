@@ -26,6 +26,7 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
     private JMenuItem saveRawButton = new JMenuItem("Save Raw Data");
     private JMenuItem loadRawButton = new JMenuItem("Load Raw Data"); // TODO: Non-functional
     private JMenuItem sizeButton = new JMenuItem("Size");
+    private JMenuItem reloadButton = new JMenuItem("Reload");
 
 
     private boolean leftMouseDown = false;
@@ -67,6 +68,8 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
         saveRawButton.addActionListener(this);
         file.add(loadRawButton);
         loadRawButton.addActionListener(this);
+        file.add(reloadButton);
+        reloadButton.addActionListener(this);
         mb.add(file);
         this.add(mb, BorderLayout.PAGE_START);
 
@@ -196,6 +199,9 @@ public class Canvas  extends JFrame implements ActionListener, MouseListener, Mo
         if (e.getSource() == loadRawButton) {
             System.out.println("Loading Raw Requested");
             // make loadRaw();
+        }
+        if (e.getSource() == reloadButton) {
+            resetCanvas();
         }
 
     }
